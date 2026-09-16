@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>London Borough Map</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;background:#f5f5f5;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}.app{max-width:1200px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}h1{font-size:1.2rem;margin:0}.status{font-size:.82rem;color:#666}.map-card{position:relative;background:white;border:1px solid #ddd;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px #0001}#map{display:block;width:100%;height:auto}.info{position:absolute;left:12px;bottom:12px;min-width:180px;padding:10px 12px;background:#fffffff2;border:1px solid #ddd;border-radius:9px;box-shadow:0 2px 8px #0002;pointer-events:none}.info strong{display:block;margin-bottom:3px}.info span{font-size:.9rem;color:#666}.legend{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.8rem;color:#666}.gradient{height:12px;width:240px;max-width:45vw;border-radius:6px;border:1px solid #ccc;background:linear-gradient(to right,#eee,#4c3470)}
+*{box-sizing:border-box}html,body{margin:0;background:#f5f5f5;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}.app{max-width:1200px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}h1{font-size:1.2rem;margin:0}.status{font-size:.82rem;color:#666}.map-card{position:relative;background:white;border:1px solid #ddd;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px #0001}#svg-container{width:100%;line-height:0}#svg-container>svg{display:block;width:100%;height:auto}.info{position:absolute;left:12px;bottom:12px;min-width:180px;padding:10px 12px;background:#fffffff2;border:1px solid #ddd;border-radius:9px;box-shadow:0 2px 8px #0002;pointer-events:none}.info strong{display:block;margin-bottom:3px}.info span{font-size:.9rem;color:#666}.legend{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.8rem;color:#666}.gradient{height:12px;width:240px;max-width:45vw;border-radius:6px;border:1px solid #ccc;background:linear-gradient(to right,#eee,#4c3470)}
 </style>
 </head>
 <body>
 <div class="app">
 <header><div><h1>London Boroughs</h1><div class="status" id="status">Loading map…</div></div></header>
 <div class="map-card">
-<svg id="map" viewBox="0 0 962 744" xmlns="http://www.w3.org/2000/svg" aria-label="Map of London boroughs"></svg>
+<div id="svg-container" aria-label="Map of London boroughs"></div>
 <div class="info" id="info"><strong>London boroughs</strong><span>Tap or hover over a borough</span></div>
 </div>
 <div class="legend"><span>Low</span><div class="gradient"></div><span>High</span></div>
@@ -34,7 +34,8 @@
 */
 const GOOGLE_SHEET_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vS1SIRDAYb9e80Lo2TP2k-04tST5Zy34qxprdowE0fCwpX_DGlixeix51CKpp2x4PoxivCKlCIoPg8k/pub?gid=1892181683&single=true&output=csv";
 
-const map=document.getElementById('map'),status=document.getElementById('status'),info=document.getElementById('info');
+const container=document.getElementById('svg-container'),status=document.getElementById('status'),info=document.getElementById('info');
+let map=null;
 let data=new Map();
 
 async function loadMap(){
@@ -44,8 +45,16 @@ async function loadMap(){
     const text=await r.text();
     const doc=new DOMParser().parseFromString(text,'image/svg+xml');
     const source=doc.documentElement;
-    [...source.attributes].forEach(a=>{if(a.name!=='width'&&a.name!=='height')map.setAttribute(a.name,a.value)});
-    map.innerHTML=source.innerHTML;
+    // Insert the original SVG root as-is. This avoids nesting the source SVG
+    // inside another SVG, which can cause incorrect rendering of transforms
+    // and dimensions in some browsers.
+    container.replaceChildren(document.importNode(source,true));
+    map=container.querySelector('svg');
+    if(!map)throw new Error('map.svg does not contain an SVG root');
+    map.removeAttribute('width');
+    map.removeAttribute('height');
+    map.setAttribute('viewBox','0 0 962 744');
+    map.setAttribute('preserveAspectRatio','xMidYMid meet');
     const paths=[...map.querySelectorAll('path[id]')].filter(p=>p.getAttribute('id')!=='path2161');
     paths.forEach(p=>{
       p.dataset.borough=p.id;
