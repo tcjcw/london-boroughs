@@ -1,99 +1,638 @@
 <!doctype html>
+
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>London Borough Map</title>
+
 <style>
-*{box-sizing:border-box}html,body{margin:0;background:#f5f5f5;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}.app{max-width:1200px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}h1{font-size:1.2rem;margin:0}.status{font-size:.82rem;color:#666}.map-card{position:relative;background:white;border:1px solid #ddd;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px #0001}#svg-container{width:100%;line-height:0}#svg-container>svg{display:block;width:100%;height:auto}.info{position:absolute;left:12px;bottom:12px;min-width:180px;padding:10px 12px;background:#fffffff2;border:1px solid #ddd;border-radius:9px;box-shadow:0 2px 8px #0002;pointer-events:none}.info strong{display:block;margin-bottom:3px}.info span{font-size:.9rem;color:#666}.legend{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.8rem;color:#666}.gradient{height:12px;width:240px;max-width:45vw;border-radius:6px;border:1px solid #ccc;background:linear-gradient(to right,#eee,#4c3470)}
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  background:#f5f5f5;
+  color:#222;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+
+body{
+  padding:max(12px,env(safe-area-inset-top))
+         max(12px,env(safe-area-inset-right))
+         max(12px,env(safe-area-inset-bottom))
+         max(12px,env(safe-area-inset-left))
+}
+
+.app{
+  max-width:1200px;
+  margin:auto
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:10px;
+  flex-wrap:wrap
+}
+
+h1{
+  font-size:1.2rem;
+  margin:0
+}
+
+.status{
+  font-size:.82rem;
+  color:#666
+}
+
+.map-card{
+  position:relative;
+  background:white;
+  border:1px solid #ddd;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 1px 4px #0001
+}
+
+#svg-container{
+  width:100%;
+  line-height:0
+}
+
+#svg-container>svg{
+  display:block;
+  width:100%;
+  height:auto
+}
+
+.info{
+  position:absolute;
+  left:12px;
+  bottom:12px;
+  min-width:180px;
+  padding:10px 12px;
+  background:#fffffff2;
+  border:1px solid #ddd;
+  border-radius:9px;
+  box-shadow:0 2px 8px #0002;
+  pointer-events:none
+}
+
+.info strong{
+  display:block;
+  margin-bottom:3px
+}
+
+.info span{
+  display:block;
+  font-size:.9rem;
+  color:#666;
+  margin-top:2px
+}
+
+/* Team summary table */
+
+.summary-card{
+  margin-top:12px;
+  background:white;
+  border:1px solid #ddd;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 1px 4px #0001
+}
+
+.summary-title{
+  padding:12px 14px 8px;
+  font-size:1rem;
+  font-weight:600
+}
+
+.summary-table-wrapper{
+  overflow-x:auto
+}
+
+.summary-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.9rem
+}
+
+.summary-table th,
+.summary-table td{
+  padding:9px 14px;
+  border-top:1px solid #eee;
+  text-align:left;
+  white-space:nowrap
+}
+
+.summary-table th{
+  background:#f8f8f8;
+  font-weight:600;
+  color:#555
+}
+
+.summary-table td:not(:first-child),
+.summary-table th:not(:first-child){
+  text-align:right
+}
+
+.summary-table tbody tr:last-child{
+  font-weight:600;
+  background:#fafafa
+}
+
+.summary-table .team-name{
+  font-weight:500;
+}
+
+.summary-table .total-row{
+  font-weight:700;
+}
+
+.legend{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:10px;
+  font-size:.8rem;
+  color:#666
+}
+
+.gradient{
+  height:12px;
+  width:240px;
+  max-width:45vw;
+  border-radius:6px;
+  border:1px solid #ccc;
+  background:linear-gradient(to right,#eee,#4c3470)
+}
 </style>
+
 </head>
+
 <body>
+
 <div class="app">
-<header><div><h1>London Boroughs</h1><div class="status" id="status">Loading map…</div></div></header>
+
+<header>
+  <div>
+    <h1>London Boroughs</h1>
+    <div class="status" id="status">Loading map…</div>
+  </div>
+</header>
+
 <div class="map-card">
-<div id="svg-container" aria-label="Map of London boroughs"></div>
-<div class="info" id="info"><strong>London boroughs</strong><span>Tap or hover over a borough</span></div>
+
+  <div id="svg-container" aria-label="Map of London boroughs"></div>
+
+  <div class="info" id="info">
+    <strong>London boroughs</strong>
+    <span>Tap or hover over a borough</span>
+  </div>
+
+</div>
+
+<!-- Team summary -->
+
+<div class="summary-card">
+
+  <div class="summary-title">
+    Team Summary
+  </div>
+
+  <div class="summary-table-wrapper">
+
+```
+<table class="summary-table">
+  <thead>
+    <tr>
+      <th>Team</th>
+      <th>Claimed + Locked</th>
+      <th>Population Claimed</th>
+    </tr>
+  </thead>
+
+  <tbody id="team-summary">
+    <tr>
+      <td colspan="3">Loading…</td>
+    </tr>
+  </tbody>
+
+</table>
+```
+
+  </div>
+</div>
 
 <script>
 
 const GOOGLE_SHEET_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vS1SIRDAYb9e80Lo2TP2k-04tST5Zy34qxprdowE0fCwpX_DGlixeix51CKpp2x4PoxivCKlCIoPg8k/pub?gid=1892181683&single=true&output=csv";
 
-const container=document.getElementById('svg-container'),status=document.getElementById('status'),info=document.getElementById('info');
+const container=document.getElementById('svg-container'),
+      status=document.getElementById('status'),
+      info=document.getElementById('info'),
+      teamSummary=document.getElementById('team-summary');
+
 let map=null;
 let data=new Map();
 
+
 async function loadMap(){
+
   try{
+
     const r=await fetch('map.svg',{cache:'no-store'});
+
     if(!r.ok)throw new Error('map.svg returned '+r.status);
+
     const text=await r.text();
+
     const doc=new DOMParser().parseFromString(text,'image/svg+xml');
     const source=doc.documentElement;
-    // Insert the original SVG root as-is. This avoids nesting the source SVG
-    // inside another SVG, which can cause incorrect rendering of transforms
-    // and dimensions in some browsers.
+
     container.replaceChildren(document.importNode(source,true));
+
     map=container.querySelector('svg');
+
     if(!map)throw new Error('map.svg does not contain an SVG root');
+
     map.removeAttribute('width');
     map.removeAttribute('height');
+
     map.setAttribute('viewBox','0 0 962 744');
     map.setAttribute('preserveAspectRatio','xMidYMid meet');
-    const paths=[...map.querySelectorAll('path[id]')].filter(p=>p.getAttribute('id')!=='path2161');
+
+    const paths=[
+      ...map.querySelectorAll('path[id]')
+    ].filter(p=>p.getAttribute('id')!=='path2161');
+
     paths.forEach(p=>{
+
       p.dataset.borough=p.id;
+
       p.addEventListener('mouseenter',()=>show(p.id));
       p.addEventListener('click',()=>show(p.id));
+
       p.style.cursor='pointer';
+
     });
+
     status.textContent=`Map loaded · ${paths.length} borough paths`;
+
     await loadData();
-  }catch(e){console.error(e);status.textContent='Could not load map.svg. Put it beside index.html.'}
+
+  }catch(e){
+
+    console.error(e);
+
+    status.textContent='Could not load map.svg. Put it beside index.html.';
+
+  }
+
 }
+
 
 function parseCSV(s){
-  const rows=[];let row=[],field='',q=false;
-  for(let i=0;i<s.length;i++){const c=s[i],n=s[i+1];if(c==='"'&&q&&n==='"'){field+='"';i++}else if(c==='"')q=!q;else if(c===','&&!q){row.push(field.trim());field=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(field.trim());field='';if(row.some(x=>x!==''))rows.push(row);row=[]}else field+=c}
-  if(field!==''||row.length){row.push(field.trim());if(row.some(x=>x!==''))rows.push(row)}
-  if(!rows.length)return[];const h=rows[0].map(x=>x.replace(/^\uFEFF/,'').trim());return rows.slice(1).map(r=>Object.fromEntries(h.map((x,i)=>[x,r[i]??''])));
+
+  const rows=[];
+  let row=[],
+      field='',
+      q=false;
+
+  for(let i=0;i<s.length;i++){
+
+    const c=s[i],
+          n=s[i+1];
+
+    if(c==='"'&&q&&n==='"'){
+      field+='"';
+      i++;
+    }
+    else if(c==='"'){
+      q=!q;
+    }
+    else if(c===','&&!q){
+      row.push(field.trim());
+      field='';
+    }
+    else if((c==='\n'||c==='\r')&&!q){
+
+      if(c==='\r'&&n==='\n')i++;
+
+      row.push(field.trim());
+      field='';
+
+      if(row.some(x=>x!==''))rows.push(row);
+
+      row=[];
+
+    }
+    else{
+      field+=c;
+    }
+
+  }
+
+  if(field!==''||row.length){
+
+    row.push(field.trim());
+
+    if(row.some(x=>x!==''))rows.push(row);
+
+  }
+
+  if(!rows.length)return[];
+
+  const h=rows[0].map(
+    x=>x.replace(/^\uFEFF/,'').trim()
+  );
+
+  return rows.slice(1).map(
+    r=>Object.fromEntries(
+      h.map((x,i)=>[x,r[i]??''])
+    )
+  );
+
 }
-function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
-function colour(v,min,max){const t=max===min?1:clamp((v-min)/(max-min),0,1),a=[238,238,238],b=[76,52,112];return `rgb(${a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(',')})`}
-function opacity(v,min,max){const t=max===min?1:clamp((v-min)/(max-min),0,1);return .25+.75*t}
+
+
+function clamp(x,a,b){
+  return Math.max(a,Math.min(b,x))
+}
+
+
+function colour(v,min,max){
+
+  const t=max===min
+    ?1
+    :clamp((v-min)/(max-min),0,1);
+
+  const a=[238,238,238],
+        b=[76,52,112];
+
+  return `rgb(${
+    a.map(
+      (x,i)=>Math.round(x+(b[i]-x)*t)
+    ).join(',')
+  })`;
+
+}
+
+
+function opacity(v,min,max){
+
+  const t=max===min
+    ?1
+    :clamp((v-min)/(max-min),0,1);
+
+  return .25+.75*t;
+
+}
+
 
 async function loadData(){
-  if(!GOOGLE_SHEET_CSV_URL||GOOGLE_SHEET_CSV_URL.includes('PASTE_YOUR')){status.textContent+=' · no Sheet configured';return}
+
+  if(
+    !GOOGLE_SHEET_CSV_URL ||
+    GOOGLE_SHEET_CSV_URL.includes('PASTE_YOUR')
+  ){
+
+    status.textContent+=' · no Sheet configured';
+
+    return;
+
+  }
+
   try{
-    const sep=GOOGLE_SHEET_CSV_URL.includes('?')?'&':'?';
-    const r=await fetch(GOOGLE_SHEET_CSV_URL+sep+'_='+Date.now(),{cache:'no-store'});
-    if(!r.ok)throw new Error('Sheet returned '+r.status);
+
+    const sep=GOOGLE_SHEET_CSV_URL.includes('?')
+      ?'&'
+      :'?';
+
+    const r=await fetch(
+      GOOGLE_SHEET_CSV_URL+sep+'_='+Date.now(),
+      {cache:'no-store'}
+    );
+
+    if(!r.ok)
+      throw new Error('Sheet returned '+r.status);
+
     const rows=parseCSV(await r.text());
-    const vals=rows.map(x=>Number(String(x.Value??'').replace(/,/g,''))).filter(Number.isFinite);
-    const min=vals.length?Math.min(...vals):0,max=vals.length?Math.max(...vals):1;
+
+    const vals=rows
+      .map(x=>Number(
+        String(x.Value??'').replace(/,/g,'')
+      ))
+      .filter(Number.isFinite);
+
+    const min=vals.length
+      ?Math.min(...vals)
+      :0;
+
+    const max=vals.length
+      ?Math.max(...vals)
+      :1;
+
+
     rows.forEach(x=>{
-      const name=String(x.Borough||'').trim();if(!name)return;
-      const v=Number(String(x.Value??'').replace(/,/g,''));
-      const c=(x.Colour||'').trim()||colour(v,min,max);
-      const o=(x.Opacity||'').trim()!==''?clamp(Number(x.Opacity),0,1):opacity(v,min,max);
-      const t=(x.Team||'')
-      const s=(x.Status||'')
-      data.set(name,{value:v,colour:c,opacity:o,team:t,status:s});
-      const p=document.getElementById(name);if(p){p.style.fill=c;p.style.fillOpacity=o}
+
+      const name=String(x.Borough||'').trim();
+
+      if(!name)return;
+
+      const v=Number(
+        String(x.Value??'').replace(/,/g,'')
+      );
+
+      const c=(x.Colour||'').trim() ||
+              colour(v,min,max);
+
+      const o=(x.Opacity||'').trim()!==''
+        ?clamp(Number(x.Opacity),0,1)
+        :opacity(v,min,max);
+
+      const t=String(x.Team||'').trim();
+      const s=String(x.Status||'').trim();
+
+      data.set(name,{
+        value:v,
+        colour:c,
+        opacity:o,
+        team:t,
+        status:s
+      });
+
+      const p=document.getElementById(name);
+
+      if(p){
+        p.style.fill=c;
+        p.style.fillOpacity=o;
+      }
+
     });
-    status.textContent=`Updated ${data.size} boroughs · ${new Date().toLocaleTimeString()}`;
-  }catch(e){console.error(e);status.textContent='Map loaded · could not load Google Sheet'}
+
+
+    // Update the team summary table
+    updateTeamSummary();
+
+
+    status.textContent=
+      `Updated ${data.size} boroughs · ${
+        new Date().toLocaleTimeString()
+      }`;
+
+  }catch(e){
+
+    console.error(e);
+
+    status.textContent=
+      'Map loaded · could not load Google Sheet';
+
+  }
+
 }
-function esc(x){return String(x).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function show(name){const d=data.get(name);info.innerHTML=d&&Number.isFinite(d.value)?`<strong>${esc(name)}</strong>
-  <span>
-    Status: ${d.status}<br>
-  </span><span>
-    Team: ${d.team}<br>
-  </span><span>
-    Population: ${d.value.toLocaleString()}
-  </span>`:`<strong>${esc(name)}</strong><span>No data available</span>`}
+
+function updateTeamSummary(){
+
+  const teams=new Map();
+
+  data.forEach((borough,boroughName)=>{
+
+    const team=borough.team.trim();
+    const status=borough.status.trim().toLowerCase();
+
+    // Ignore boroughs that haven't been assigned to a team
+    if(!team)return;
+
+    if(!teams.has(team)){
+      teams.set(team,{
+        boroughs:0,
+        population:0
+      });
+    }
+
+    const t=teams.get(team);
+
+    // Count both Claimed and Locked boroughs
+    if(status==='claimed'||status==='locked'){
+      t.boroughs++;
+
+      // Population also includes both Claimed and Locked boroughs
+      if(Number.isFinite(borough.value)){
+        t.population+=borough.value;
+      }
+    }
+
+  });
+
+
+  // Sort:
+  // 1. Most claimed + locked boroughs
+  // 2. Where tied, largest population
+  const sortedTeams=[
+    ...teams.entries()
+  ].sort((a,b)=>{
+
+    const teamA=a[1];
+    const teamB=b[1];
+
+    if(teamB.boroughs!==teamA.boroughs){
+      return teamB.boroughs-teamA.boroughs;
+    }
+
+    return teamB.population-teamA.population;
+
+  });
+
+
+  // Calculate overall totals
+  let totalBoroughs=0;
+  let totalPopulation=0;
+
+  sortedTeams.forEach(([team,t])=>{
+    totalBoroughs+=t.boroughs;
+    totalPopulation+=t.population;
+  });
+
+
+  // Build table
+  if(!sortedTeams.length){
+
+    teamSummary.innerHTML=`
+      <tr>
+        <td colspan="3">No team data available</td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+
+  teamSummary.innerHTML=sortedTeams.map(
+    ([team,t],index)=>`
+      <tr>
+        <td class="team-name">${index+1}. ${esc(team)}</td>
+        <td>${t.boroughs}</td>
+        <td>${t.population.toLocaleString()}</td>
+      </tr>
+    `
+  ).join('');
+
+
+  // Add total row
+  teamSummary.innerHTML+=`
+    <tr class="total-row">
+      <td>Total</td>
+      <td>${totalBoroughs}</td>
+      <td>${totalPopulation.toLocaleString()}</td>
+    </tr>
+  `;
+
+}
+
+
+function esc(x){
+
+  return String(x).replace(
+    /[&<>"']/g,
+    m=>({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#039;'
+    }[m])
+  );
+
+}
+
+
+function show(name){
+
+  const d=data.get(name);
+
+  info.innerHTML=
+    d&&Number.isFinite(d.value)
+    ?`
+      <strong>${esc(name)}</strong>
+      <span>Status: ${esc(d.status)}</span>
+      <span>Team: ${esc(d.team)}</span>
+      <span>Population: ${d.value.toLocaleString()}</span>
+    `
+    :`
+      <strong>${esc(name)}</strong>
+      <span>No data available</span>
+    `;
+
+}
+
+
 loadMap();
+
 </script>
+
 </body>
 </html>
