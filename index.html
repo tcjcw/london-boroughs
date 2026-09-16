@@ -578,11 +578,14 @@ function updateTeamSummary(){
     ([team,t],index)=>`
       <tr class="team-${team.toLowerCase().replace(/[^a-z0-9]/g,'')}">
         <td class="team-name">${index+1}. ${esc(team)}</td>
+        <td>${t.claimed}</td>
+        <td>${t.locked}</td>
         <td>${t.boroughs}</td>
         <td>${t.population.toLocaleString()}</td>
       </tr>
     `
   ).join('');
+    }
 
 function esc(x){
 
