@@ -87,11 +87,11 @@ async function loadData(){
 function esc(x){return String(x).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function show(name){const d=data.get(name);info.innerHTML=d&&Number.isFinite(d.value)?`<strong>${esc(name)}</strong>
   <span>
-  Population: ${d.value.toLocaleString()}
+    Status: ${d.status}<br>
   </span><span>
-  Team: ${d.team}
+    Team: ${d.team}<br>
   </span><span>
-  Status: ${d.status}
+    Population: ${d.value.toLocaleString()}
   </span>`:`<strong>${esc(name)}</strong><span>No data available</span>`}
 loadMap();
 </script>
