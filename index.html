@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>London Borough Map</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#f5f5f5;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}.app{max-width:1200px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}h1{font-size:1.2rem;margin:0}.status{font-size:.82rem;color:#666}.map-card{position:relative;background:white;border:1px solid #ddd;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px #0001}#map{display:block;width:100%;height:auto}.info{position:absolute;left:12px;bottom:12px;min-width:180px;padding:10px 12px;background:#fffffff2;border:1px solid #ddd;border-radius:9px;box-shadow:0 2px 8px #0002;pointer-events:none}.info strong{display:block;margin-bottom:3px}.info span{font-size:.9rem;color:#666}.legend{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.8rem;color:#666}.gradient{height:12px;width:240px;max-width:45vw;border-radius:6px;border:1px solid #ccc;background:linear-gradient(to right,#eee,#4c3470)}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div><h1>London Boroughs</h1><div class="status" id="status">Loading map…</div></div></header>
+<div class="map-card">
+<svg id="map" viewBox="0 0 962 744" xmlns="http://www.w3.org/2000/svg" aria-label="Map of London boroughs"></svg>
+<div class="info" id="info"><strong>London boroughs</strong><span>Tap or hover over a borough</span></div>
+</div>
+<div class="legend"><span>Low</span><div class="gradient"></div><span>High</span></div>
+</div>
+<script>
+/*
+  Put your supplied raw SVG in the same GitHub Pages folder as this file,
+  named exactly: map.svg
+
+  Google Sheet format:
+    Borough,Value
+    Hillingdon,72
+    Ealing,91
+
+  Optional columns:
+    Borough,Value,Colour,Opacity
+
+  Publish the sheet as CSV and paste its URL below.
+*/
+const GOOGLE_SHEET_CSV_URL="https://docs.google.com/spreadsheets/d/1D3a22QBm-UtrLDWpPzW_ZagJNyZ-ycl4-8gxeR1NkIE/edit?usp=sharing";
+
+const map=document.getElementById('map'),status=document.getElementById('status'),info=document.getElementById('info');
+let data=new Map();
+
+async function loadMap(){
+  try{
+    const r=await fetch('map.svg',{cache:'no-store'});
+    if(!r.ok)throw new Error('map.svg returned '+r.status);
+    const text=await r.text();
+    const doc=new DOMParser().parseFromString(text,'image/svg+xml');
+    const source=doc.documentElement;
+    [...source.attributes].forEach(a=>{if(a.name!=='width'&&a.name!=='height')map.setAttribute(a.name,a.value)});
+    map.innerHTML=source.innerHTML;
+    const paths=[...map.querySelectorAll('path[id]')].filter(p=>p.getAttribute('id')!=='path2161');
+    paths.forEach(p=>{
+      p.dataset.borough=p.id;
+      p.addEventListener('mouseenter',()=>show(p.id));
+      p.addEventListener('click',()=>show(p.id));
+      p.style.cursor='pointer';
+    });
+    status.textContent=`Map loaded · ${paths.length} borough paths`;
+    await loadData();
+  }catch(e){console.error(e);status.textContent='Could not load map.svg. Put it beside index.html.'}
+}
+
+function parseCSV(s){
+  const rows=[];let row=[],field='',q=false;
+  for(let i=0;i<s.length;i++){const c=s[i],n=s[i+1];if(c==='"'&&q&&n==='"'){field+='"';i++}else if(c==='"')q=!q;else if(c===','&&!q){row.push(field.trim());field=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(field.trim());field='';if(row.some(x=>x!==''))rows.push(row);row=[]}else field+=c}
+  if(field!==''||row.length){row.push(field.trim());if(row.some(x=>x!==''))rows.push(row)}
+  if(!rows.length)return[];const h=rows[0].map(x=>x.replace(/^\uFEFF/,'').trim());return rows.slice(1).map(r=>Object.fromEntries(h.map((x,i)=>[x,r[i]??''])));
+}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+function colour(v,min,max){const t=max===min?1:clamp((v-min)/(max-min),0,1),a=[238,238,238],b=[76,52,112];return `rgb(${a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(',')})`}
+function opacity(v,min,max){const t=max===min?1:clamp((v-min)/(max-min),0,1);return .25+.75*t}
+
+async function loadData(){
+  if(!GOOGLE_SHEET_CSV_URL||GOOGLE_SHEET_CSV_URL.includes('PASTE_YOUR')){status.textContent+=' · no Sheet configured';return}
+  try{
+    const sep=GOOGLE_SHEET_CSV_URL.includes('?')?'&':'?';
+    const r=await fetch(GOOGLE_SHEET_CSV_URL+sep+'_='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw new Error('Sheet returned '+r.status);
+    const rows=parseCSV(await r.text());
+    const vals=rows.map(x=>Number(String(x.Value??'').replace(/,/g,''))).filter(Number.isFinite);
+    const min=vals.length?Math.min(...vals):0,max=vals.length?Math.max(...vals):1;
+    rows.forEach(x=>{
+      const name=String(x.Borough||'').trim();if(!name)return;
+      const v=Number(String(x.Value??'').replace(/,/g,''));
+      const c=(x.Colour||'').trim()||colour(v,min,max);
+      const o=(x.Opacity||'').trim()!==''?clamp(Number(x.Opacity),0,1):opacity(v,min,max);
+      data.set(name,{value:v,colour:c,opacity:o});
+      const p=document.getElementById(name);if(p){p.style.fill=c;p.style.fillOpacity=o}
+    });
+    status.textContent=`Updated ${data.size} boroughs · ${new Date().toLocaleTimeString()}`;
+  }catch(e){console.error(e);status.textContent='Map loaded · could not load Google Sheet'}
+}
+function esc(x){return String(x).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function show(name){const d=data.get(name);info.innerHTML=d&&Number.isFinite(d.value)?`<strong>${esc(name)}</strong><span>Value: ${d.value.toLocaleString()}</span>`:`<strong>${esc(name)}</strong><span>No data available</span>`}
+loadMap();
+</script>
+</body>
+</html>
