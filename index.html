@@ -208,6 +208,8 @@ h1{
   <thead>
     <tr>
       <th>Team</th>
+      <th>Claimed</th>
+      <th>Locked</th>
       <th>Total Points</th>
       <th>Population Claimed</th>
     </tr>
@@ -513,7 +515,13 @@ function updateTeamSummary(){
 
     const t=teams.get(team);
 
-    // Count both Claimed and Locked boroughs
+
+    if(status==='claimed'){
+      t.claimed++;
+    }
+    if(status==='locked'){
+      t.locked++;
+    }
     if(status==='claimed'||status==='locked'){
       t.boroughs++;
 
@@ -561,6 +569,8 @@ function updateTeamSummary(){
     ([team,t],index)=>`
       <tr>
         <td class="team-name">${index+1}. ${esc(team)}</td>
+        <td>${t.claimed}</td>
+        <td>${t.locked}</td>
         <td>${t.boroughs}</td>
         <td>${t.population.toLocaleString()}</td>
       </tr>
