@@ -138,13 +138,24 @@ h1{
   text-align:right
 }
 
-.summary-table tbody tr:last-child{
-  font-weight:600;
-  background:#fafafa
-}
-
 .summary-table .team-name{
   font-weight:500;
+}
+
+.summary-table tr.team-wibley{
+  background:#f4cccc;
+}
+
+.summary-table tr.team-westbonetown{
+  background:#b6d7a8;
+}
+
+.summary-table tr.team-bornhamcras{
+  background:#cfe2f3;
+}
+
+.summary-table tr.team-wimmercham{
+  background:#d9d2e9;
 }
 
 .legend{
@@ -565,17 +576,13 @@ function updateTeamSummary(){
 
   teamSummary.innerHTML=sortedTeams.map(
     ([team,t],index)=>`
-      <tr>
+      <tr class="team-${team.toLowerCase().replace(/[^a-z0-9]/g,'')}">
         <td class="team-name">${index+1}. ${esc(team)}</td>
-        <td>${t.claimed}</td>
-        <td>${t.locked}</td>
         <td>${t.boroughs}</td>
         <td>${t.population.toLocaleString()}</td>
       </tr>
     `
   ).join('');
-}
-
 
 function esc(x){
 
