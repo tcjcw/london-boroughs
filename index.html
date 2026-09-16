@@ -509,6 +509,8 @@ function updateTeamSummary(){
     if(!teams.has(team)){
       teams.set(team,{
         boroughs:0,
+        claimed:0,
+        locked:0,
         population:0
       });
     }
