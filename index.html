@@ -14,24 +14,9 @@
 <div class="map-card">
 <div id="svg-container" aria-label="Map of London boroughs"></div>
 <div class="info" id="info"><strong>London boroughs</strong><span>Tap or hover over a borough</span></div>
-</div>
-<div class="legend"><span>Low</span><div class="gradient"></div><span>High</span></div>
-</div>
+
 <script>
-/*
-  Put your supplied raw SVG in the same GitHub Pages folder as this file,
-  named exactly: map.svg
 
-  Google Sheet format:
-    Borough,Value
-    Hillingdon,72
-    Ealing,91
-
-  Optional columns:
-    Borough,Value,Colour,Opacity
-
-  Publish the sheet as CSV and paste its URL below.
-*/
 const GOOGLE_SHEET_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vS1SIRDAYb9e80Lo2TP2k-04tST5Zy34qxprdowE0fCwpX_DGlixeix51CKpp2x4PoxivCKlCIoPg8k/pub?gid=1892181683&single=true&output=csv";
 
 const container=document.getElementById('svg-container'),status=document.getElementById('status'),info=document.getElementById('info');
@@ -91,14 +76,20 @@ async function loadData(){
       const v=Number(String(x.Value??'').replace(/,/g,''));
       const c=(x.Colour||'').trim()||colour(v,min,max);
       const o=(x.Opacity||'').trim()!==''?clamp(Number(x.Opacity),0,1):opacity(v,min,max);
-      data.set(name,{value:v,colour:c,opacity:o});
+      const t=(x.Team||'')
+      const s=(x.Status||'')
+      data.set(name,{value:v,colour:c,opacity:o,team:t,status:s});
       const p=document.getElementById(name);if(p){p.style.fill=c;p.style.fillOpacity=o}
     });
     status.textContent=`Updated ${data.size} boroughs · ${new Date().toLocaleTimeString()}`;
   }catch(e){console.error(e);status.textContent='Map loaded · could not load Google Sheet'}
 }
 function esc(x){return String(x).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function show(name){const d=data.get(name);info.innerHTML=d&&Number.isFinite(d.value)?`<strong>${esc(name)}</strong><span>Value: ${d.value.toLocaleString()}</span>`:`<strong>${esc(name)}</strong><span>No data available</span>`}
+function show(name){const d=data.get(name);info.innerHTML=d&&Number.isFinite(d.value)?`<strong>${esc(name)}</strong><span>
+  Population: ${d.value.toLocaleString()}
+  Team: ${d.team}
+  Status: ${d.status}
+  </span>`:`<strong>${esc(name)}</strong><span>No data available</span>`}
 loadMap();
 </script>
 </body>
