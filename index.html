@@ -85,9 +85,12 @@ async function loadData(){
   }catch(e){console.error(e);status.textContent='Map loaded · could not load Google Sheet'}
 }
 function esc(x){return String(x).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function show(name){const d=data.get(name);info.innerHTML=d&&Number.isFinite(d.value)?`<strong>${esc(name)}</strong><span>
+function show(name){const d=data.get(name);info.innerHTML=d&&Number.isFinite(d.value)?`<strong>${esc(name)}</strong>
+  <span>
   Population: ${d.value.toLocaleString()}
+  </span><span>
   Team: ${d.team}
+  </span><span>
   Status: ${d.status}
   </span>`:`<strong>${esc(name)}</strong><span>No data available</span>`}
 loadMap();
