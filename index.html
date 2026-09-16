@@ -204,12 +204,11 @@ h1{
 
   <div class="summary-table-wrapper">
 
-```
 <table class="summary-table">
   <thead>
     <tr>
       <th>Team</th>
-      <th>Claimed + Locked</th>
+      <th>Total Points</th>
       <th>Population Claimed</th>
     </tr>
   </thead>
@@ -221,7 +220,6 @@ h1{
   </tbody>
 
 </table>
-```
 
   </div>
 </div>
@@ -546,17 +544,6 @@ function updateTeamSummary(){
 
   });
 
-
-  // Calculate overall totals
-  let totalBoroughs=0;
-  let totalPopulation=0;
-
-  sortedTeams.forEach(([team,t])=>{
-    totalBoroughs+=t.boroughs;
-    totalPopulation+=t.population;
-  });
-
-
   // Build table
   if(!sortedTeams.length){
 
@@ -570,7 +557,6 @@ function updateTeamSummary(){
 
   }
 
-
   teamSummary.innerHTML=sortedTeams.map(
     ([team,t],index)=>`
       <tr>
@@ -580,17 +566,6 @@ function updateTeamSummary(){
       </tr>
     `
   ).join('');
-
-
-  // Add total row
-  teamSummary.innerHTML+=`
-    <tr class="total-row">
-      <td>Total</td>
-      <td>${totalBoroughs}</td>
-      <td>${totalPopulation.toLocaleString()}</td>
-    </tr>
-  `;
-
 }
 
 
